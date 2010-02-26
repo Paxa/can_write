@@ -1,10 +1,12 @@
 #! /usr/bin/ruby
 require 'pp'
-require 'etc'
+require 'fileutils'
 unless File.exist?(File.join Dir.pwd, 'can_write')
   puts "No can_write file found at #{Dir.pwd}"
   exit
 end
+
+VERBOSE = false
 
 class Horse
   class << self
@@ -15,20 +17,12 @@ class Horse
   def go!
     self.class.conf.each do |rule|
       rule[:dirs].each do |dir|
-        File.chown uid(rule[:user]), gid(rule[:user]), dir if rule[:user] != 'any'
-        File.chmod 0777, dir if rule[:access] == :execute
-        File.chmod 0666, dir if rule[:access] == :write
-        File.chmod 0444, dir if rule[:access] == :read
+        FileUtils.chown rule[:user], rule[:user], dir, :verbose => VERBOSE if rule[:user] != 'any'
+        FileUtils.chmod_R 0777, dir, :verbose => VERBOSE if rule[:access] == :execute
+        FileUtils.chmod_R 0666, dir, :verbose => VERBOSE if rule[:access] == :write
+        FileUtils.chmod_R 0444, dir, :verbose => VERBOSE if rule[:access] == :read
       end
     end
-  end
-
-  def uid name
-    Etc.getpwnam(name).uid
-  end
-
-  def gid name
-    Etc.getpwnam(name).gid
   end
 end
 
