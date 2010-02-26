@@ -1,5 +1,6 @@
 #! /usr/bin/ruby
 require 'pp'
+require 'etc'
 unless File.exist?(File.join Dir.pwd, 'can_write')
   puts "No can_write file found at #{Dir.pwd}"
   exit
@@ -12,7 +13,22 @@ class Horse
   @conf = []
 
   def go!
-    pp self.class.conf
+    self.class.conf.each do |rule|
+      rule[:dirs].each do |dir|
+        File.chown uid(rule[:user]), gid(rule[:user]), dir if rule[:user] != 'any'
+        File.chmod 0777, dir if rule[:access] == :execute
+        File.chmod 0666, dir if rule[:access] == :write
+        File.chmod 0444, dir if rule[:access] == :read
+      end
+    end
+  end
+
+  def uid name
+    Etc.getpwnam(name).uid
+  end
+
+  def gid name
+    Etc.getpwnam(name).gid
   end
 end
 
