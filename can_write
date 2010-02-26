@@ -1,0 +1,49 @@
+#! /usr/bin/ruby
+require 'pp'
+unless File.exist?(File.join Dir.pwd, 'can_write')
+  puts "No can_write file found at #{Dir.pwd}"
+  exit
+end
+
+class Horse
+  class << self
+    attr_accessor :conf
+  end
+  @conf = []
+
+  def go!
+    pp self.class.conf
+  end
+end
+
+class Array
+  def should_be_writable
+    store_condition :write
+  end
+
+  def should_be_readable
+    store_condition :read
+  end
+
+  def should_be_executable
+    store_condition :execute
+  end
+  
+  private 
+
+  def store_condition access
+    hash = {:user => 'any', :access => access, :dirs => self}
+    Horse.conf << hash
+    hash
+  end
+end
+
+class Hash
+  def by_user user
+    self[:user] = user
+  end
+end
+
+at_exit { Horse.new.go! }
+
+load File.join Dir.pwd, 'can_write'
