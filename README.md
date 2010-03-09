@@ -1,4 +1,4 @@
-## Using
+# Using
 
     gem install can_write
 
